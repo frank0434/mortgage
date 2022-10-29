@@ -12,6 +12,7 @@ library(shiny)
 library(ggplot2)
 library(magrittr)
 library(DT)
+library(data.table)
 
 mortgage <- function(P, i, year){
   # M = Total monthly payment
@@ -89,10 +90,24 @@ server <- function(input, output) {
       first_month_int = P * int_monthly
       first_month_p = M - first_month_int
       first_month_r = P - first_month_p
+      tax_deduct_init = 0.43
+      tax_deduct_reduce_rate = 0.029
+      year = 5
+      tax_return = as.numeric(c(tax_deduct_init, NA))
+      for (i in 2:year){
+        tax_return[i] = tax_return[i-1] - tax_deduct_reduce_rate
+      }
+        
+      period = data.frame(year = 1:year,
+                          tax_return = tax_return)
+      period = period[rep(seq_len(nrow(period)), each = 12), ]
+      period$month = rep(1:12, times = year)
+      
       df = data.frame(month = x, amount = P, monthly_pay = M,
                       interest_pay = c(first_month_int, NA), 
                       principal_pay = c(first_month_p, NA), 
-                      remaining_bal = c(first_month_r,NA))
+                      remaining_bal = c(first_month_r,NA),
+                      tax_return = period$tax_return)
       for(i in 2:n){
         
         df$interest_pay[i] = df$remaining_bal[i - 1] * int_monthly
