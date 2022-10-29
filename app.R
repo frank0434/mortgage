@@ -113,7 +113,13 @@ server <- function(input, output) {
         df$interest_pay[i] = df$remaining_bal[i - 1] * int_monthly
         df$principal_pay[i] = M -  df$interest_pay[i]
         df$remaining_bal[i] = df$remaining_bal[i - 1] - df$principal_pay[i]
+        
       }
+      # Calculate net income 
+      df$net_income = 2080
+      df$tax_deduct = df$tax_return * df$interest_pay
+      df$net_pay = df$monthly_pay - df$tax_deduct
+      
       return(df)
     })
   output$plot <- renderPlot({
@@ -142,7 +148,7 @@ server <- function(input, output) {
     })
     output$tbl <-  DT::renderDataTable({
       DT::datatable(amort_tab()) %>% 
-        formatRound(columns = c(3:6), digits = 2)
+        formatRound(columns = c(3:10),2)
     })
 
 }
