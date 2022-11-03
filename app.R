@@ -13,6 +13,8 @@ library(ggplot2)
 library(magrittr)
 library(DT)
 library(data.table)
+# library(plotly)
+library(htmltools)
 
 mortgage <- function(P, i, year){
   # M = Total monthly payment
@@ -126,11 +128,11 @@ server <- function(input, output) {
       df$net_income = input$netincome
       df$tax_deduct = df$tax_return * df$interest_pay
       df$net_pay = df$monthly_pay - df$tax_deduct
-      df$PGDI =  df$net_income -  df$net_pay 
+      df$DI =  df$net_income -  df$net_pay 
       return(df)
     })
   output$plot <- renderPlot({
-    ggplot(amort_tab(), aes(month, monthly_pay)) +
+    P <- ggplot(amort_tab(), aes(month, monthly_pay)) +
       geom_area(aes(fill = "monthly_pay"))+
       geom_area(aes(y = interest_pay, fill = "interest_pay"))+
       theme_classic() +
@@ -140,6 +142,8 @@ server <- function(input, output) {
                         labels = c("Interest payment","Monthly payment"))+
       theme(legend.position = "bottom", text = element_text(size = 18)) +
       ylab("Monthly Payment")
+    P
+    
     
   })
     output$text <- renderUI({
@@ -163,12 +167,17 @@ server <- function(input, output) {
     })
     output$tbl <-  DT::renderDataTable({
       options(DT.options = list(pageLength = 12))
-      DT::datatable(amort_tab()) %>% 
+      DT::datatable(amort_tab(),
+                    caption = htmltools::tags$caption(
+                      style = 'caption-side: bottom; text-align: left;',
+                      'Notes: ', htmltools::em('DI = Disposable income')
+                    )) %>% 
         formatRound(columns = c(3:11),2) %>% 
         formatStyle(
-          columns = c('net_pay','PGDI'),
+          columns = c('net_pay','DI'),
           fontWeight = "bold",
           backgroundColor = 'yellow')
+      
     })
 
 }
