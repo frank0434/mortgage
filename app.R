@@ -35,15 +35,19 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
+          # input variables for the amount you want to borrow
+          # the interest rate
+          # and how many years you want to repay
             sliderInput("amount",
                         "The total amount:",
                         min = 10000,
-                        max = 150000,step = 5000,
+                        max = 1500000,step = 10000,
                         value = 10000),
             numericInput("interest", label = "interest rate",
-                         value = 0.045, min = 0.036, max = 0.052),
+                         value = 0.045, min = 0.000, max = 0.1),
             numericInput("year", label = "how many years",
                          value = 30, min = 10, max = 30),
+            # get a fancy but useless plot to show Annuity mortgage repayment
             plotOutput("plot")
             
         ),
