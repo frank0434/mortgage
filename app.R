@@ -47,6 +47,8 @@ ui <- fluidPage(
                          value = 0.045, min = 0.000, max = 0.1),
             numericInput("year", label = "how many years",
                          value = 30, min = 10, max = 30),
+            numericInput("netincome", label = "how much you earn monthly (after tax)?",
+                         value = 2500, min = 0, max = 1000000000),
             # get a fancy but useless plot to show Annuity mortgage repayment
             plotOutput("plot")
             
@@ -55,14 +57,14 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
           uiOutput("text"),
-          
+          # output the amortisation table 
           DT::dataTableOutput("tbl")
           
         )
         
     )
 )
-
+# help from the website: 
 # https://www.thebalancemoney.com/amortization-calculator-5115846
 # calculate amortization table
 server <- function(input, output) {
@@ -121,7 +123,7 @@ server <- function(input, output) {
         
       }
       # Calculate net income 
-      df$net_income = 2080
+      df$net_income = input$netincome
       df$tax_deduct = df$tax_return * df$interest_pay
       df$net_pay = df$monthly_pay - df$tax_deduct
       df$PGDI =  df$net_income -  df$net_pay 
@@ -160,8 +162,13 @@ server <- function(input, output) {
       ))
     })
     output$tbl <-  DT::renderDataTable({
+      options(DT.options = list(pageLength = 12))
       DT::datatable(amort_tab()) %>% 
-        formatRound(columns = c(3:11),2)
+        formatRound(columns = c(3:11),2) %>% 
+        formatStyle(
+          columns = c('net_pay','PGDI'),
+          fontWeight = "bold",
+          backgroundColor = 'yellow')
     })
 
 }
