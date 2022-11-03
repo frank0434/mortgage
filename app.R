@@ -43,14 +43,15 @@ ui <- fluidPage(
             numericInput("interest", label = "interest rate",
                          value = 0.045, min = 0.036, max = 0.052),
             numericInput("year", label = "how many years",
-                         value = 30, min = 10, max = 30)
+                         value = 30, min = 10, max = 30),
+            plotOutput("plot")
             
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
           uiOutput("text"),
-          plotOutput("plot"),
+          
           DT::dataTableOutput("tbl")
           
         )
@@ -119,13 +120,21 @@ server <- function(input, output) {
       df$net_income = 2080
       df$tax_deduct = df$tax_return * df$interest_pay
       df$net_pay = df$monthly_pay - df$tax_deduct
-      
+      df$PGDI =  df$net_income -  df$net_pay 
       return(df)
     })
   output$plot <- renderPlot({
-    ggplot(amort_tab(), aes(month, interest_pay)) + 
-      geom_line(size = 1)+
-      theme_classic()
+    ggplot(amort_tab(), aes(month, monthly_pay)) +
+      geom_area(aes(fill = "monthly_pay"))+
+      geom_area(aes(y = interest_pay, fill = "interest_pay"))+
+      theme_classic() +
+      scale_x_continuous(limits = c(0,NA), expand = c(0,0))+
+      scale_y_continuous(limits = c(0,NA), expand = c(0,0))+
+      scale_fill_manual(name = "", values = c("red", "grey50"), 
+                        labels = c("Interest payment","Monthly payment"))+
+      theme(legend.position = "bottom", text = element_text(size = 18)) +
+      ylab("Monthly Payment")
+    
   })
     output$text <- renderUI({
       P = input$amount
@@ -148,7 +157,7 @@ server <- function(input, output) {
     })
     output$tbl <-  DT::renderDataTable({
       DT::datatable(amort_tab()) %>% 
-        formatRound(columns = c(3:10),2)
+        formatRound(columns = c(3:11),2)
     })
 
 }
